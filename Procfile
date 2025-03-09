@@ -1,0 +1,1 @@
+web: gunicorn djsf.wsgi:application --config /app/gunicorn.conf.py

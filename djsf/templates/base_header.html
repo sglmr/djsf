@@ -1,0 +1,65 @@
+<!-- Header & Nav -->
+<header
+class="max-w-4xl mx-auto mt-2 mb-6 sm:mb-10 flex-wrap md:flex-nowrap md:flex-row border-2 border-black bg-sky-200 p-4 flex justify-between shadow">
+  <div class="w-full flex justify-between items-center">
+    <h1 class="text-base sm:text-lg md:text-xl font-extrabold text-inherit my-0 mx-1 sm:mx-2">sglmr.com</h1>
+    <!-- Mobile menu button (visible only on smaller screens) -->
+    <button id="mobile-menu-button" class="md:hidden flex items-center" aria-label="Open mobile menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </button>
+  </div>
+  
+  <!-- Navigation menu (hidden on mobile by default) -->
+  <nav id="nav-menu" class="hidden md:flex w-full md:w-auto gap-x-1 sm:gap-x-2 md:gap-x-4 gap-y-1 flex-nowrap mx-0 font-bold text-sm mt-4 md:mt-0">
+    <a href="{% url 'home' %}" class="nav-link">Home</a>
+    <a href="{% url 'blog:index' %}" class="nav-link">Archive</a>
+    <a href="{% url 'projects' %}" class="nav-link">Projects</a>
+    <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+    {% if user.is_authenticated %}
+    <a href="{% url 'capture:entry_list' %}" class="nav-link">Capture</a>
+    <a href="{% url 'bookmarks:index' %}" class="nav-link">Bookmarks</a>
+    <a href="{% url 'admin:index' %}" class="nav-link">Admin</a>
+    {% endif %}
+  </nav>
+</header>
+
+<!-- JavaScript for the mobile menu toggle -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const navMenu = document.getElementById('nav-menu');
+    
+    // Toggle menu visibility when the button is clicked
+    mobileMenuButton.addEventListener('click', function() {
+      if (navMenu.classList.contains('hidden')) {
+        navMenu.classList.remove('hidden');
+        navMenu.classList.add('flex', 'flex-col');
+      } else {
+        navMenu.classList.add('hidden');
+        navMenu.classList.remove('flex', 'flex-col');
+      }
+    });
+    
+    // Handle window resize to ensure proper menu display
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 768) { // 768px is the md breakpoint in Tailwind
+        navMenu.classList.remove('hidden');
+        navMenu.classList.add('flex');
+        navMenu.classList.remove('flex-col');
+      } else {
+        // Only hide if the menu is not actively being shown on mobile
+        if (!navMenu.classList.contains('flex-col')) {
+          navMenu.classList.add('hidden');
+        }
+      }
+    });
+    
+    // Initialize menu state based on screen size
+    if (window.innerWidth >= 768) {
+      navMenu.classList.remove('hidden');
+      navMenu.classList.add('flex');
+    }
+  });
+</script>

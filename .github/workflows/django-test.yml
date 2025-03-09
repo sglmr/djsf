@@ -27,7 +27,7 @@ jobs:
 
     - name: Collect Static
       run: |
-        python django/manage.py collectstatic --no-input
+        python manage.py collectstatic --no-input
     - name: Run Tests
       run: |
         pytest

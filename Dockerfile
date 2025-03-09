@@ -35,4 +35,4 @@ RUN python manage.py migrate
 RUN python manage.py collectstatic --noinput
 
 # Serve the app with gunicorn
-CMD ["gunicorn", "djsf.wsgi:application", "--config", "/app/gunicorn.conf.py"]
+CMD ["gunicorn", "djsf.wsgi:application", "--config", "gunicorn.conf.py"]

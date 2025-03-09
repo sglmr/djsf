@@ -9,7 +9,6 @@ env:
 
 jobs:
   test:
-    name: python
     runs-on: ubuntu-latest
 
     steps:

@@ -7,45 +7,32 @@
     <meta charset='utf-8'>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{% block head_title %}{% endblock head_title %} - sglmr.com</title>
-    <meta name="description" content="Stephen Gilmore's website. https://sglmr.com">
-    <meta property="og:site_name" content="Stephen Gilmore's website.">
-
-    {% block extra_meta %}
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Stephen Gilmore's website.">
-    <meta property="og:url" content="https://sglmr.com">
-    <meta property="og:description" content="Stephen Gilmore's website.">
-    {% endblock %}
-
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_title }}">
+    <meta property="og:site_name" content="{{ page_title }}">
 
     <script src="{% static 'tailwind.js' %}"></script>
-
-
-    {% block extra_head %}{% endblock extra_head %}
 </head>
 
-<body class="mx-auto p-1.5 bg-orange-50" style="font-family: Public Sans, sans-serif;"
-    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="mx-auto p-1.5" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
     <!-- Header & Nav -->
     <header
-        class="max-w-4xl mx-auto mt-2 mb-6 sm:mb-10 flex-wrap md:flex-nowrap md:flex-row border-2 border-black bg-sky-200 p-4 flex justify-between shadow">
-
+        class="max-w-4xl mx-auto mt-2 mb-6 sm:mb-10 flex-wrap md:flex-nowrap md:flex-row p-4 flex justify-between">
         <!-- Navigation menu -->
         <nav id="nav-menu"
-            class="hidden md:flex w-full md:w-auto gap-x-1 sm:gap-x-2 md:gap-x-4 gap-y-1 flex-nowrap mx-0 font-bold text-sm mt-4 md:mt-0">
+            class="md:flex w-full md:w-auto gap-x-1 sm:gap-x-2 md:gap-x-4 gap-y-1 flex-nowrap mx-0 font-bold text-sm mt-4 md:mt-0">
             <a href="/" class="nav-link">Home</a>
+            <a href="{% url 'health_check' %}">Health Check</a>
         </nav>
     </header>
 
-
     <!-- Messages -->
     {% if messages %}
-    <div class="mx-auto max-w-4xl mb-6">
+    <div class="mx-auto max-w-md mb-6">
         <ul class="list-none">
             {% for message in messages %}
-            <li class="border color-{{message.level_tag}} m-4 p-4 shadow">
+            <li class="rounded-md bg-stone-200 m-4 p-4 shadow-md w-auto">
                 <strong>{{ message.level_tag }}:</strong> {{ message }}
                 {% if message.extra_tags%} -
                 <i>
@@ -60,12 +47,12 @@
 
     <!-- Main Content -->
     <main>
-        <div class="max-w-3xl mx-auto">
+        <div class="max-w-2xl mx-auto mb-10">
             {% block content %}Hello{% endblock content %}
         </div>
     </main>
     <!-- Footer -->
-    <footer>
+    <footer class="max-w-2xl mx-auto flex justify-around">
         <small>Hello, world</small>
     </footer>
 </body>

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import sys
 from pathlib import Path
 
 from django.core.management.utils import get_random_secret_key
@@ -21,6 +22,8 @@ env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# TESTING is True if django is running tests
+TESTING = "pytest" in sys.argv[0]
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -31,16 +34,18 @@ SECRET_KEY = env.str("SECRET_KEY", get_random_secret_key())
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", False)
 
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
 
 AUTH_USER_MODEL = "djsf.AppUser"
 
-# Application definition
 
+# Application definition
 INSTALLED_APPS = [
     # project apps
     "djsf",
     # third party apps
+    "debug_toolbar",
     "django_browser_reload",
     "whitenoise.runserver_nostatic",
     # django apps
@@ -55,6 +60,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -63,6 +69,13 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+if not DEBUG:
+    # If not in DEBUG mode, remove the debug toolbar config
+    INSTALLED_APPS.remove("debug_toolbar")
+    MIDDLEWARE.remove("debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = ["127.0.0.1"]
+
 
 ROOT_URLCONF = "djsf.urls"
 
@@ -156,3 +169,31 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Settings for Testing
+if TESTING:
+    DEBUG = False
+
+    # Use memory storage
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.InMemoryStorage"},
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
+
+    # Use the dummy cache
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+
+    # Make whitenoise work a little faster
+    WHITENOISE_AUTOREFRESH = True
+
+    # Use a faster password hasher
+    PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
+
+    # Keep django debug toolbar out of testing
+    if "debug_toolbar" in INSTALLED_APPS:
+        INSTALLED_APPS.remove("debug_toolbar")
+    if "debug_toolbar.middleware.DebugToolbarMiddleware" in MIDDLEWARE:
+        MIDDLEWARE.remove("debug_toolbar.middleware.DebugToolbarMiddleware")

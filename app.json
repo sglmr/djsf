@@ -4,7 +4,7 @@
         {
           "type": "startup",
           "name": "web check",
-          "description": "Checking if the app responds to the /health endpoint",
+          "description": "Checking if the app responds to the /health/ endpoint",
           "path": "/health/",
           "attempts": 3
         }

@@ -28,8 +28,8 @@ jobs:
 
       - name: Collect Static
         run: |
-          python manage.py collectstatic --no-input
+          uv run manage.py collectstatic --no-input
 
       - name: Run Tests
         run: |
-          pytest
+          uv run pytest

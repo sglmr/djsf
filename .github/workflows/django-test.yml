@@ -23,10 +23,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version-file: ".python-version"
+      
+    - name: List files
+      run: |
+        ls
 
     - name: Collect Static
       run: |
         python manage.py collectstatic --no-input
+
     - name: Run Tests
       run: |
         pytest

@@ -21,10 +21,6 @@ jobs:
       
       - name: Install the project.
         run: uv sync
-        
-      - name: List files
-        run: |
-          ls
 
       - name: Collect Static
         run: |

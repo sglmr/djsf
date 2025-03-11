@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     # project apps
     "djsf",
     # third party apps
+    "django_tasks",
+    "django_tasks.backends.database",
     "debug_toolbar",
     "django_browser_reload",
     "whitenoise.runserver_nostatic",
@@ -106,7 +108,8 @@ DATABASES = {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
         "OPTIONS": {
-            "transaction_mode": "IMMEDIATE",
+            # "transaction_mode": "IMMEDIATE",
+            "transaction_mode": "EXCLUSIVE",
             "timeout": 10,
             "init_command": """
                 PRAGMA journal_mode=WAL;
@@ -127,6 +130,8 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+TASKS = {"default": {"BACKEND": "django_tasks.backends.database.DatabaseBackend"}}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -197,3 +202,6 @@ if TESTING:
         INSTALLED_APPS.remove("debug_toolbar")
     if "debug_toolbar.middleware.DebugToolbarMiddleware" in MIDDLEWARE:
         MIDDLEWARE.remove("debug_toolbar.middleware.DebugToolbarMiddleware")
+
+    # Use immediate mode for tasks
+    TASKS = {"default": {"BACKEND": "django_tasks.backends.immediate.ImmediateBackend"}}

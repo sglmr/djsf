@@ -16,6 +16,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.Homepage.as_view(), name="home"),
     path("health/", views.HealthCheck.as_view(), name="health_check"),
+    path("task/", views.SimpleTask.as_view(), name="simple_task"),
     path("__reload__/", include("django_browser_reload.urls")),
 ]
 

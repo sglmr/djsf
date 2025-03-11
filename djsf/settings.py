@@ -31,13 +31,17 @@ TESTING = "pytest" in sys.argv[0]
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY", get_random_secret_key())
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env.bool("DEBUG", False)
 
+# Check for production
+PRODUCTION = env.str("DOKKU_APP_TYPE", "")
+if PRODUCTION:
+    DEBUG = False
+else:
+    DEBUG = env.bool("DEBUG", False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
 
-AUTH_USER_MODEL = "djsf.AppUser"
+AUTH_USER_MODEL = "djsf.User"
 
 
 # Application definition
@@ -205,3 +209,16 @@ if TESTING:
 
     # Use immediate mode for tasks
     TASKS = {"default": {"BACKEND": "django_tasks.backends.immediate.ImmediateBackend"}}
+
+# Settings for Deployment
+# https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+if PRODUCTION:
+    SECURE_HSTS_SECONDS = 2592000  # 30 days
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_HOST = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True

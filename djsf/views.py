@@ -15,6 +15,7 @@ class Homepage(generic.TemplateView):
     """
 
     template_name = "home.html"
+    extra_context = {"page_title": "Home"}
 
     def get_context_data(self, **kwargs):
         messages.info(self.request, "Welcome!")

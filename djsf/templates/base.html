@@ -1,0 +1,70 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset='utf-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_title }}">
+    <meta property="og:site_name" content="{{ page_title }}">
+
+    <link rel="stylesheet" href="{% static 'pico.min.css' %}">
+</head>
+
+<body style="width:800px; margin:auto;" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <header class="container">
+
+        <nav>
+            <ul>
+                <li>
+                    <hgroup>
+                        <h1>djsf</h1>
+                        <p>A ready-to-roll Django template.</p>
+                    </hgroup>
+                </li>
+            </ul>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="{% url 'health_check' %}">Health Check</a></li>
+            </ul>
+        </nav>
+
+        <!-- Messages -->
+        {% if messages %}
+        {% for message in messages %}
+        <article>
+            <strong>{{ message.level_tag }}:</strong> {{ message }}
+            {% if message.extra_tags%} -
+            <i>
+                {{ message.extra_tags }}
+            </i>
+            {% endif %}
+        </article>
+        {% endfor %}
+        {% endif %}
+
+    </header>
+
+
+    <!-- Main Content -->
+    <main class="container">
+
+        {% block content %}
+        <section>
+            <h1>{{ page_title }}</h1>
+            <p>
+                Hello
+            </p>
+        </section>
+        {% endblock content %}
+    </main>
+    <!-- Footer -->
+    <footer class="container">
+        <small>it's a footer!</small>
+    </footer>
+</body>
+
+</html>

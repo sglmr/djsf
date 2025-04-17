@@ -1,1 +1,2 @@
-web: gunicorn djsf.wsgi:application --config gunicorn.conf.py
+web: /app/entrypoint.sh
+worker: python /app/manage.py qcluster

@@ -22,8 +22,16 @@ env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+max_mem = 1024 * 1024 * 50  # 50MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = max_mem
+FILE_UPLOAD_MAX_MEMORY_SIZE = max_mem
+
 # TESTING is True if django is running tests
 TESTING = "pytest" in sys.argv[0]
+
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
+
+ENV = env.str("ENV", "").lower()
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -32,14 +40,35 @@ TESTING = "pytest" in sys.argv[0]
 SECRET_KEY = env.str("SECRET_KEY", get_random_secret_key())
 
 
-# Check for production
-PRODUCTION = env.str("DOKKU_APP_TYPE", "")
-if PRODUCTION:
-    DEBUG = False
-else:
-    DEBUG = env.bool("DEBUG", False)
+match ENV:
+    case "production" | "prod":
+        # Settings for Deployment
+        # https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
+        DEBUG = False
+        ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
+        SECURE_HSTS_SECONDS = 2592000  # 30 days
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
+        SECURE_SSL_REDIRECT = True
+        SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+        SECURE_SSL_HOST = True
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        SECURE_CONTENT_TYPE_NOSNIFF = True
+        # Configure Sentry
+        import sentry_sdk
 
-ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", [])
+        sentry_sdk.init(
+            dsn=env.str("SENTRY_DSN"),
+            send_default_pii=True,
+        )
+
+    case "development" | "dev":
+        DEBUG = env.bool("DEBUG", True)
+    case _:
+        print("Missing 'ENV' variable (prod|dev)")
+        exit(1)
+
 
 AUTH_USER_MODEL = "djsf.User"
 
@@ -49,8 +78,7 @@ INSTALLED_APPS = [
     # project apps
     "djsf",
     # third party apps
-    "django_tasks",
-    "django_tasks.backends.database",
+    "django_q",
     "debug_toolbar",
     "django_browser_reload",
     "whitenoise.runserver_nostatic",
@@ -76,15 +104,17 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
+INTERNAL_IPS = ["127.0.0.1"]
 if not DEBUG:
     # If not in DEBUG mode, remove the debug toolbar config
     INSTALLED_APPS.remove("debug_toolbar")
     MIDDLEWARE.remove("debug_toolbar.middleware.DebugToolbarMiddleware")
-    INTERNAL_IPS = ["127.0.0.1"]
+    INTERNAL_IPS = []
 
 
 ROOT_URLCONF = "djsf.urls"
 
+SITE_ID = 1
 
 TEMPLATES = [
     {
@@ -129,19 +159,34 @@ DATABASES = {
 DATABASES["default"]["NAME"].parent.mkdir(parents=True, exist_ok=True)
 
 STORAGES = {
-    # ...
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 
-TASKS = {"default": {"BACKEND": "django_tasks.backends.database.DatabaseBackend"}}
+# django-q2 configuration
+# https://django-q2.readthedocs.io/en/master/configure.html
+Q_CLUSTER = {
+    "name": "djsf",
+    "workers": 2,
+    "recycle": 100,
+    "timeout": 60,
+    "retry": 60 * 10,
+    "queue_limit": 500,
+    "label": "Q2",  # For admin
+    "max_attempts": 3,
+    "orm": "default",
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATIC_HOST = env.str("DJANGO_STATIC_HOST", "")
 STATIC_URL = STATIC_HOST + "/static/"
+
+MEDIA_ROOT = env.str("MEDIA_ROOT", "mediafiles/")
+MEDIA_URL = "/media/file/"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -167,7 +212,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Los_Angeles"
 
 USE_I18N = True
 
@@ -207,18 +252,17 @@ if TESTING:
     if "debug_toolbar.middleware.DebugToolbarMiddleware" in MIDDLEWARE:
         MIDDLEWARE.remove("debug_toolbar.middleware.DebugToolbarMiddleware")
 
-    # Use immediate mode for tasks
-    TASKS = {"default": {"BACKEND": "django_tasks.backends.immediate.ImmediateBackend"}}
+    Q_CLUSTER["sync"] = True
 
-# Settings for Deployment
-# https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-if PRODUCTION:
-    SECURE_HSTS_SECONDS = 2592000  # 30 days
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SECURE_SSL_HOST = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Email & SMTP configuration
+EMAIL_HOST = env.str("SMTP_HOST", "")
+EMAIL_HOST_PASSWORD = env.str("SMTP_PASSWORD", "")
+EMAIL_HOST_USER = env.str("SMTP_USERNAME", "")
+EMAIL_PORT = env.int("SMTP_PORT", "")
+DEFAULT_FROM_EMAIL = env.str("SMTP_FROM", "")
+ADMINS = [("Stephen", env.str("ADMIN_EMAIL", ""))]
+if env.bool("SEND_EMAIL", False):
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

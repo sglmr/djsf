@@ -4,7 +4,7 @@ from time import sleep
 from django.contrib import messages
 from django.http import HttpResponse
 from django.views import View, generic
-from django_tasks import task
+from django_q.tasks import async_task
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,7 @@ class HealthCheck(View):
         return HttpResponse("healthy")
 
 
-@task
-def wait_and_print():
+def wait_and_print() -> None:
     logger.info("I'm going to sleep")
     sleep(5)
     logger.info("I'm awake!")
@@ -44,5 +43,5 @@ class SimpleTask(View):
     """
 
     def get(self, request, *args, **kwargs):
-        wait_and_print.enqueue()
+        async_task(wait_and_print)
         return HttpResponse("task queued!")

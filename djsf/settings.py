@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import sys
 from pathlib import Path
 
-from django.core.management.utils import get_random_secret_key
 from environs import env
 
 # Read environment variables
@@ -37,7 +36,9 @@ ENV = env.str("ENV", "").lower()
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env.str("SECRET_KEY", get_random_secret_key())
+SECRET_KEY = env.str("SECRET_KEY")
+if not SECRET_KEY:
+    raise ValueError("missing SECRET_KEY environment variable")
 
 
 match ENV:
